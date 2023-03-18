@@ -42,6 +42,19 @@ def delete_client(user_tg_id: int) -> None:
 #     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
 
 
+# def get_price_dry_cleaner(car_class: int):
+#     """Get price for service"""
+#     query = PriceDryCleaner.select(SubserviceDryCleaner.title, PriceDryCleaner.price).join(SubserviceDryCleaner).where(PriceDryCleaner.car_class_id == car_class)
+#     pr = query.dicts().execute()
+#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+
+
+# def get_price_prot_cover(car_class: int):
+#     """Get price for service"""
+#     query = PriceProtCover.select(SubserviceProtCover.title, PriceProtCover.price).join(SubserviceProtCover).where(PriceProtCover.car_class_id == car_class)
+#     pr = query.dicts().execute()
+#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+
 def get_price_wash(car_class: int):
     """Get price for service"""
     query = Price_wash.select(Subservice.title, Price_wash.price).join(Subservice).where(Price_wash.car_class_id == car_class)
@@ -60,14 +73,14 @@ def get_price_dry_cleaner(car_class: int):
     """Get price for service"""
     query = PriceDryCleaner.select(SubserviceDryCleaner.title, PriceDryCleaner.price).join(SubserviceDryCleaner).where(PriceDryCleaner.car_class_id == car_class)
     pr = query.dicts().execute()
-    return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+    return [f"{str(p['price'])}" for p in pr]
 
 
 def get_price_prot_cover(car_class: int):
     """Get price for service"""
     query = PriceProtCover.select(SubserviceProtCover.title, PriceProtCover.price).join(SubserviceProtCover).where(PriceProtCover.car_class_id == car_class)
     pr = query.dicts().execute()
-    return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+    return [f"{str(p['price'])}" for p in pr]
 
 
 def get_price_liquid_glass(service_id: int):

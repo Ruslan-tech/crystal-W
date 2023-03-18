@@ -33,6 +33,13 @@ price_prot_cover_sedan = InlineKeyboardButton(text="ЗАЩИТНЫЕ ПОКРЫ�
 price_mrkup_sedan.add(price_wash_sedan, price_polish_sedan, price_liq_glass_sedan, price_dry_cleaner_sedan, price_presale_sedan, price_prot_cover_sedan)
 
 
+def btn_back_to_services(car_class: str):
+    btn_mrkup = InlineKeyboardMarkup(row_width=1)
+    btn_back = InlineKeyboardButton(text="🔙 Вернуться к выбору услуг", callback_data=f"{car_class}")
+    btn_mrkup.add(btn_back)
+    return btn_mrkup
+    
+
 def create_btn_liquid_glass(title: str, price: int, clback: str):
     price_liquid_glass_mrkup = InlineKeyboardMarkup(row_width=1)
     btn_liquid_glass = InlineKeyboardButton(text=f"{title} - от {price} руб.", callback_data=f"{clback}")
