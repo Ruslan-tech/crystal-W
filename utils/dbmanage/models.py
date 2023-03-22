@@ -55,8 +55,8 @@ class SubserviceProtCover(BaseModel):
     title = CharField()
     
 
-class TireService(BaseModel):
-    pass
+class SubserviceTires(BaseModel):
+    title = CharField()
 
 
 class CarClass(BaseModel):
@@ -113,5 +113,5 @@ class ProductPromotions(BaseModel):
 db.connect()
 # создание таблиц
 db.create_tables([Clients, Services, Subservice, SubservicePolish, SubserviceDryCleaner, 
-                  SubserviceProtCover, CarClass, Price_wash, PricePolish, PriceDryCleaner, PriceProtCover, PriceLiquidGlass])
+                  SubserviceProtCover, CarClass, Price_wash, PricePolish, PriceDryCleaner, PriceProtCover, PriceLiquidGlass, SubserviceTires])
 
