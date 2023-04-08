@@ -1,5 +1,5 @@
 from .models import Clients, Price_wash, CarClass, Subservice, PricePolish, SubservicePolish, SubserviceDryCleaner, \
-PriceDryCleaner, PriceProtCover, SubserviceProtCover, PriceLiquidGlass, Services
+PriceDryCleaner, PriceProtCover, SubserviceProtCover, PriceLiquidGlass, Services, PriceTires, SubserviceTires
 from py_log import *
 import datetime
 
@@ -27,33 +27,22 @@ def delete_client(user_tg_id: int) -> None:
     delite = Clients.delete().where(Clients.user_tg_id == user_tg_id)
     delite.execute()
     
-    
-# def get_price_wash(car_class: int):
-#     """Get price for service"""
-#     query = Price_wash.select(Subservice.title, Price_wash.price).join(Subservice).where(Price_wash.car_class_id == car_class)
-#     pr = query.dicts().execute()
-#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+
+def get_user_bonus(user_tg_id: int):
+    try:
+        query = Clients.select(Clients.bonus).where(Clients.user_tg_id == user_tg_id)
+        pr = query.dicts().execute()
+        return [p for p in pr][0]["bonus"]
+    except Exception as ex:
+        logger.exception('error in searching for an existing user in the database', ex)
 
 
-# def get_price_polish(car_class: int):
-#     """Get price for service"""
-#     query = PricePolish.select(SubservicePolish.title, PricePolish.price).join(SubservicePolish).where(PricePolish.car_class_id == car_class)
-#     pr = query.dicts().execute()
-#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
-
-
-# def get_price_dry_cleaner(car_class: int):
-#     """Get price for service"""
-#     query = PriceDryCleaner.select(SubserviceDryCleaner.title, PriceDryCleaner.price).join(SubserviceDryCleaner).where(PriceDryCleaner.car_class_id == car_class)
-#     pr = query.dicts().execute()
-#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
-
-
-# def get_price_prot_cover(car_class: int):
-#     """Get price for service"""
-#     query = PriceProtCover.select(SubserviceProtCover.title, PriceProtCover.price).join(SubserviceProtCover).where(PriceProtCover.car_class_id == car_class)
-#     pr = query.dicts().execute()
-#     return [f"{p['title']} - {str(p['price'])} руб" for p in pr]
+def add_bonus_user(user_tg_id: int, new_bonus: int):
+    try:
+        user = Clients.update(bonus = new_bonus).where(Clients.user_tg_id == user_tg_id)
+        user.execute()
+    except Exception:
+        logger.exception('error to update bonus in database')
 
 def get_price_wash(car_class: int):
     """Get price for service"""
@@ -88,3 +77,11 @@ def get_price_liquid_glass(service_id: int):
     query = PriceLiquidGlass.select(Services.title, PriceLiquidGlass.price).join(Services).where(PriceLiquidGlass.service_id == service_id)
     pr = query.dicts().execute()
     return [f"{str(p['price'])}" for p in pr][0]
+
+
+def get_price_tires(car_class: int):
+    """Get price for tires"""
+    query = PriceTires.select(SubserviceTires.title, PriceTires.price).join(SubserviceTires).where(PriceTires.car_class_id == car_class)
+    pr = query.dicts().execute()
+    
+    return [f"{p['title']} - {str(p['price'])}" for p in pr]

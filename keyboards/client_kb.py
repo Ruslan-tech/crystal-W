@@ -37,7 +37,8 @@ car_mrkup.add(car_cat_sed, car_cat_cros, car_cat_vned, car_cat_minv)
 
 def btn_back_to_services(car_class: str):
     btn_mrkup = InlineKeyboardMarkup(row_width=1)
-    btn_back = InlineKeyboardButton(text="🔙 Вернуться к выбору услуг", callback_data=f"{car_class}")
+    btn_back = InlineKeyboardButton(text="🔙 Вернуться к выбору услуг", 
+                                    callback_data=f"{car_class}")
     btn_mrkup.add(btn_back)
     return btn_mrkup
     
@@ -49,7 +50,11 @@ def btn_back_to_services(car_class: str):
 #     return price_liquid_glass_mrkup
 
 
-serv = {"МОЙКА": "moika", "ПОЛИРОВКА": "polish", "ХИМЧИСТКА": "dry_cleaner", "ЗАЩИТНЫЕ ПОКРЫТИЯ": "prot_cover", "ШИНОМОНТАЖ": "tiers"}
+serv = {"МОЙКА": "moika", 
+        "ПОЛИРОВКА": "polish", 
+        "ХИМЧИСТКА": "dry_cleaner", 
+        "ЗАЩИТНЫЕ ПОКРЫТИЯ": "prot_cover", 
+        "ШИНОМОНТАЖ": "tiers"}
 
 
 def create_btn_mrkup_services(car_class: str):
@@ -73,3 +78,18 @@ def create_btn_mrkup_services(car_class: str):
 #     btn_back = InlineKeyboardButton(text="Вернуться к выбору типа авто -->", callback_data="car_mrkup")
 #     mrkup.add(btn_back)
 #     return mrkup
+
+tires_serv = {"ПОЛНЫЙ ШИНОМОНТАЖ 4-Х КОЛЁС": "full_tires", 
+              "ЗАМЕНА СОБРАННЫХ КОЛЕС + БАЛЛАНСИРОВКА": "replace_assembled_wheels_balance", 
+              "ЗАМЕНА СОБРАННЫХ КОЛЕС": "replace_assembled_wheels",
+              "ЕДИНИЧНЫЕ РАБОТЫ": "single_works",
+              "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ": "addit_services",
+              "СЛЕСАРНЫЕ УСЛУГИ": "locksmith_services"}
+
+def create_tires_services_kb():
+    mrkup = InlineKeyboardMarkup(row_width=1)
+    for k, v in tires_serv.items():
+        btn = InlineKeyboardButton(text=k, callback_data=v)
+        mrkup.add(btn)
+    
+    return mrkup

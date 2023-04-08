@@ -14,6 +14,7 @@ class Clients(BaseModel):
     """Таблица Клиенты"""
     user_tg_id = IntegerField() 
     user_name = CharField(max_length=50)
+    bonus = IntegerField(default=0)
 
 
 class Services(BaseModel):
@@ -101,6 +102,12 @@ class PriceLiquidGlass(BaseModel):
     service_id = ForeignKeyField(Services)
 
 
+class PriceTires(BaseModel):
+    car_class_id = ForeignKeyField(CarClass)
+    sub_serv_id = ForeignKeyField(SubserviceTires)
+    price = price = IntegerField(null=True)
+    
+
 class ProductPromotions(BaseModel):
     """Таблица акций"""
     service_id = ForeignKeyField(Services)
@@ -110,8 +117,10 @@ class ProductPromotions(BaseModel):
 
 
 # соединение с БД
+
 db.connect()
 # создание таблиц
 db.create_tables([Clients, Services, Subservice, SubservicePolish, SubserviceDryCleaner, 
-                  SubserviceProtCover, CarClass, Price_wash, PricePolish, PriceDryCleaner, PriceProtCover, PriceLiquidGlass, SubserviceTires])
+                    SubserviceProtCover, CarClass, Price_wash, PricePolish, PriceDryCleaner, PriceProtCover, 
+                    PriceLiquidGlass, SubserviceTires, PriceTires])
 

@@ -1,13 +1,15 @@
 import os
-
+from data.data import subservices
 from aiogram import types, Bot, executor, Dispatcher
 from aiogram.dispatcher.filters import CommandStart, CommandHelp
 from aiogram.types import ContentType, InputFile
 
-from keyboards.client_kb import welcome_mrkup, car_mrkup, create_btn_mrkup_services, btn_back_to_services
-from utils.dbmanage.dbcontrol import client_exists, add_client_to_db, delete_client, get_price_wash, get_price_polish, \
-    get_price_dry_cleaner, get_price_prot_cover, \
-    get_price_liquid_glass
+from keyboards.client_kb import welcome_mrkup, car_mrkup, create_btn_mrkup_services,\
+    btn_back_to_services, create_tires_services_kb
+from utils.dbmanage.dbcontrol import client_exists, add_client_to_db, \
+    delete_client, get_price_wash, get_price_polish, \
+    get_price_dry_cleaner, get_price_prot_cover, get_price_liquid_glass, \
+    get_price_tires, get_user_bonus, add_bonus_user
 import json
 from loader import dp, bot
 import io
@@ -44,7 +46,14 @@ async def send_photo_file_id(message: types.message):
         message_adm = "QR-code. Успешно просканирован."
         #####работа с БД######
         to_BD_user = data[5:]
-        print(to_BD_user)
+        print(int(to_BD_user))
+        user_bonus = get_user_bonus(int(to_BD_user))
+        if user_bonus < 6:
+            add_bonus_user(int(to_BD_user), user_bonus + 1)
+            await message.reply(text=f"Замечательно. Копим бонусы дальше")
+        elif user_bonus == 6:
+            add_bonus_user(int(to_BD_user), 0)
+            await message.reply(text="У Вас скидка на сегодняшнюю мойку")
         ######################
     else:
         message_adm = "Неверный QR-code."
@@ -52,31 +61,25 @@ async def send_photo_file_id(message: types.message):
     await message.reply(text=message_adm)
 
 
-'''
-@dp.message_handler(text='/photo')
-async def send_photo(message: Message):
-    chat_id = message.from_user.id
-    photo_file_id = 'AgACAgIAAxkBAAIHPmQM2gHzOytFDas1upT7Lj-8ElJbAAIsxzEbUL9oSL2yUcWqtICzAQADAgADbQADLwQ'
-    await dp.bot.send_photo(chat_id=chat_id, photo=photo_file_id)
-'''
+@dp.message_handler(commands=['bonus'])
+async def get_my_bonus(message: types.message):
+    bonus = get_user_bonus(message.from_user.id)
+    await bot.send_message(message.from_user.id, 
+                           text=f"{message.from_user.first_name} ваш бонус {bonus}. \
+                               \n Копите бонусы пользуясь услугами нашего \
+                               \n автомоечного комплекса. \
+                               \n Не забывайте сканировать ваш qr-code у администратора комплекса.\
+                               \n Скидка предоставляется на каждую 6ю мойку.")
 
 
 @dp.message_handler(commands=['start'])
 async def start_welcome(message: types.message):
+    if not client_exists(message.from_user.id):
+        add_client_to_db(message.from_user.id, message.from_user.username)
+    
     await bot.send_message(message.from_user.id, text=f"Привет {message.from_user.first_name}",
                            reply_markup=welcome_mrkup)
 
-    # add_client_to_db(0, 'trinux')
-    # test = get_name_client("trinux")
-    # if not client_exists(message.from_user.id):
-    # add_client_to_db(message.from_user.id, message.from_user.username)
-
-    #     await bot.send_message(message.from_user.id, text=f"Hello! {message.from_user.username}", 
-    #                         reply_markup=welcome_mrkup)
-
-    # else:
-    #     await bot.send_message(message.from_user.id, text="Если нужна помощь, нажми1 /help")
-    
 
 @dp.callback_query_handler(text="qr_code")
 async def qr_code(message: types.message):
@@ -89,31 +92,15 @@ async def qr_code(message: types.message):
         box_size=10,
         border=4,
     )
-    qr.add_data(flag + message.from_user.first_name)
+    qr.add_data(flag + str(message.from_user.id))
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    os.makedirs("qrcode")
+    os.makedirs("qrcode", exist_ok=True)
     img.save(r"qrcode/" + base64.b64encode(message.from_user.first_name.encode('UTF-8')).decode("UTF-8") + ".png")
     photo = InputFile(
         r"qrcode/" + base64.b64encode(message.from_user.first_name.encode('UTF-8')).decode("UTF-8") + ".png")
 
     await bot.send_photo(message.from_user.id, photo=photo)
-
-
-@dp.message_handler(commands=['start'])
-async def start_welcome(message: types.message):
-    # add_client_to_db(message.from_user.id, message.from_user.username)
-
-    await bot.send_message(message.from_user.id, text=f"Добрый день! {message.from_user.first_name}",
-                           reply_markup=welcome_mrkup)
-    # if not client_exists(message.from_user.id):
-    #     add_client_to_db(message.from_user.id, message.from_user.username)
-
-    #     await bot.send_message(message.from_user.id, text=f"Hello! {message.from_user.username}", 
-    #                         reply_markup=welcome_mrkup)
-
-    # else:
-    #     await bot.send_message(message.from_user.id, text="Если нужна помощь, нажми1 /help")
 
 
 @dp.callback_query_handler(text="go_wash")
@@ -239,24 +226,36 @@ async def get_services_wash_car(callback: types.CallbackQuery):
 
     elif callback.data == "liq_glass":
         await callback.message.answer(text=f"<u><b>ЖИДКОЕ СТЕКЛО</b></u> \n \
-                                \n💰 Покрытие кузова жидким стеклом <u>H-7 Glass Coating (SOFT99, Япония)</u> – цена от <u><b>{get_price_liquid_glass(3)} рублей.</b></u>\
-                                \n💧 H7 жидкое стекло для автомобиля обеспечивает надежную защиту кузова от различных воздействий внешней среды: \n\
-                                    \n✅ осадков (дождя, снега, града)\n\
-                                    \n✅ грязи\n\
-                                    \n✅ морской воды\n\
-                                    \n✅ экстремальных перемен температуры\n\
-                                    \n✅ абразивного воздействия", parse_mode="HTML")
+            \n💰 Покрытие кузова жидким стеклом <u>H-7 Glass Coating (SOFT99, Япония)</u> – цена от <u><b>{get_price_liquid_glass(3)} рублей.</b></u>\
+            \n💧 H7 жидкое стекло для автомобиля обеспечивает надежную защиту кузова от различных воздействий внешней среды: \n\
+                \n✅ осадков (дождя, снега, града)\n\
+                \n✅ грязи\n\
+                \n✅ морской воды\n\
+                \n✅ экстремальных перемен температуры\n\
+                \n✅ абразивного воздействия", parse_mode="HTML")
     elif callback.data == "presale":
         await callback.message.answer(text=f"<u><b>ПРЕДПРОДАЖНАЯ ПОДГОТОВКА</b></u> \n\
-                                \n📍  Специалисты нашей компании проведут предпродажную \
-                                \nподготовку Вашего автомобиля <u>на высочайшем уровне</u> \
-                                \nуже сегодня так, что завтра у Вас не будет отбоя от покупателей! \n\
-                                \n📍  Если вы решили продать свой автомобиль, ему необходимо \
-                                \nпридать товарный вид – <u>провести предпродажную подготовку.</u> \n\
-                                \n📍  Такая подготовка включает в себя целый комплекс действий, \
-                                \nкоторые при незначительных денежных 💰 затратах могут \
-                                \nповысить ☝️ рыночную стоимость вашей машины 🚗.\n \
-                                \n📍  Предпродажная подготовка – цена от <u><b>10 000 рублей</b></u>", parse_mode="HTML")
+            \n📍  Специалисты нашей компании проведут предпродажную \
+            \nподготовку Вашего автомобиля <u>на высочайшем уровне</u> \
+            \nуже сегодня так, что завтра у Вас не будет отбоя от покупателей! \n\
+            \n📍  Если вы решили продать свой автомобиль, ему необходимо \
+            \nпридать товарный вид – <u>провести предпродажную подготовку.</u> \n\
+            \n📍  Такая подготовка включает в себя целый комплекс действий, \
+            \nкоторые при незначительных денежных 💰 затратах могут \
+            \nповысить ☝️ рыночную стоимость вашей машины 🚗.\n \
+            \n📍  Предпродажная подготовка – цена от <u><b>10 000 рублей</b></u>", parse_mode="HTML")
+    elif callback.data in car_service_tiers_types.keys():
+        coast_tires = get_price_tires([k for k in car_service_tiers_types.get(callback.data).keys()][0])
+        call_spl = callback.data.split("_")[1]
+        print(coast_tires)
+        print(call_spl)
+        await callback.message.answer(text="Выберите услугу: ", reply_markup=create_tires_services_kb())
+        # await callback.message.answer(text=f"<u><b>ПОЛНЫЙ ШИНОМОНТАЖ 4-Х КОЛЁС</b></u> \n \
+        # (ВКЛЮЧАЕТ СНЯТИЕ, УСТАНОВКУ И БАЛАНСИРОВКУ)", parse_mode="HTML")
+        # for el in coast_tires:
+        #     await callback.message.answer(text=f"<u><b>{el} рублей</b></u>", parse_mode="HTML")
+        # await callback.message.answer(text="", parse_mode="HTML")
+           
 
 
 @dp.message_handler(commands=['quit'])
